@@ -43,12 +43,13 @@ class Quick_Buy_Run{
 	private function add_hooks(){
 	
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_backend_scripts_and_styles' ), 20 );
-		add_action( 'init', array( $this, 'qb_quantity_handler' ) );
-		remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart', 10 );
-		add_action( 'woocommerce_after_shop_loop_item', array( $this, 'qb_show_variations_loop_products' ), 10 );
-		add_filter( 'woocommerce_loop_add_to_cart_link', array( $this, 'qb_add_quantity_fields' ), 10, 2 );
-		add_filter( 'woocommerce_quantity_input_args', array( $this, 'qb_woocommerce_quantity_input_args' ), 10, 2 );
-	
+		add_action( 'enqueue_scripts', array( $this, 'enqueue_frontend_scripts_and_styles' ), 20 );
+
+		add_shortcode( 'qv-table-view', array( $this, 'qb_table_view' ) );	
+		add_action('wp_ajax_nopriv_qb_get_variation_id',  array( $this, 'qb_get_variation_id') );
+		add_action('wp_ajax_qb_get_variation_id',  array( $this, 'qb_get_variation_id') );
+		add_action('wp_ajax_nopriv_qb_custom_add_to_cart',  array( $this, 'qb_custom_add_to_cart') );
+		add_action('wp_ajax_qb_custom_add_to_cart',  array( $this, 'qb_custom_add_to_cart') );
 	}
 
 	/**
@@ -70,70 +71,126 @@ class Quick_Buy_Run{
 	 */
 	public function enqueue_backend_scripts_and_styles() {
 		wp_enqueue_style( 'quickbuy-backend-styles', QUICKBUY_PLUGIN_URL . 'core/includes/assets/css/backend-styles.css', array(), QUICKBUY_VERSION, 'all' );
+		/*
 		wp_enqueue_script( 'quickbuy-backend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/backend-scripts.js', array(), QUICKBUY_VERSION, false );
 		wp_localize_script( 'quickbuy-backend-scripts', 'quickbuy', array(
 			'plugin_name'   	=> __( QUICKBUY_NAME, 'quick-buy' ),
 		));
+		*/
 	}
 
-	public function qb_show_variations_loop_products()
+	public function enqueue_frontend_scripts_and_styles()
 	{
-		global $product;
-		 
-	    if ( ! $product->is_type( 'variable' ) ) {
-	        woocommerce_template_loop_add_to_cart();
-	        remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart', 10 );
-	        return;
-	    }
-	 
-	    remove_action( 'woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20 );
-	    add_action( 'woocommerce_single_variation', array( $this, 'qb_loop_variation_add_to_cart_button' ), 20 );
-	 
-	    woocommerce_template_single_add_to_cart();
+			wp_enqueue_script( 'quickbuy-frontend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array(), QUICKBUY_VERSION, false );
+			wp_localize_script( 'quickbuy-frontend-scripts', 'quickbuy', array(
+				'plugin_name'   	=> __( QUICKBUY_NAME, 'quick-buy' ),
+			));
+			wp_localize_script( 'quickbuy-frontend-scripts', 'ajax_var', array(
+		        'url'    => admin_url( 'admin-ajax.php' )
+		    ) );
 	}
 
-	public function qb_loop_variation_add_to_cart_button() {
-	    global $product; ?>
-	    <div class="woocommerce-variation-add-to-cart variations_button">
-            <button type="submit" class="single_add_to_cart_button button"><?php echo esc_html( $product->single_add_to_cart_text() ); ?></button>
-            <input type="hidden" name="add-to-cart" value="<?php echo absint( $product->get_id() ); ?>">
-            <input type="hidden" name="product_id" value="<?php echo absint( $product->get_id() ); ?>">
-            <input type="hidden" name="variation_id" class="variation_id" value="0">
-        </div>
-	    <?php
+	function find_matching_product_variation_id($product_id, $attributes)
+	{
+	    return (new \WC_Product_Data_Store_CPT())->find_matching_product_variation(
+	        new \WC_Product($product_id),
+	        $attributes
+	    );
 	}
 
-	public function qb_add_quantity_fields($html, $product) {
-		$html = '<form action="' . esc_url( $product->add_to_cart_url() ) . '" class="cart" method="post" enctype="multipart/form-data">';
-		$html .= woocommerce_quantity_input( array(), $product, false );
-		$html .= '<button type="submit" data-quantity="1" data-product_id="' . $product->get_id() . '" class="button alt ajax_add_to_cart add_to_cart_button product_type_simple">' . esc_html( $product->add_to_cart_text() ) . '</button>';
-		$html .= '</form>';
+	public function qb_get_variation_id()
+	{
+		$qb_variations  = isset( $_POST['qb_variations'] ) ? $_POST['qb_variations'] : false;
+		$product_id = array_pop($qb_variations);		
+		$match_attributes = array();
+		foreach ($qb_variations as $qb_variation) {
+			$match_attributes[$qb_variation['name']] = $qb_variation['value'];
+		}
+		$data_store   = WC_Data_Store::load( 'product' );
+		$variation_id = $data_store->find_matching_product_variation(
+		  new \WC_Product( $product_id['value']),$match_attributes
+		);
 
-		return $html;
+		echo $variation_id;
+		die();
 	}
 
-	function qb_woocommerce_quantity_input_args( $args, $product ) {
-		$args['input_value'] 	= 1;
-		$args['max_value'] 	= $product->get_stock_quantity();
-		$args['min_value'] 	= 0;
-		$args['step'] 		= 1;
-		return $args;
+	public function qb_custom_add_to_cart()
+	{
+		$product_data  = isset( $_POST['product_data'] ) ? $_POST['product_data'] : false;
+		WC()->cart->add_to_cart( $product_data[1]['value'], $product_data[0]['value'] );
+		die();
 	}
 
-	public function qb_quantity_handler() {
-		wc_enqueue_js( '
-		jQuery(function($) {
-		$("form.cart").on("change", "input.qty", function() {
-        $(this.form).find("[data-quantity]").attr("data-quantity", this.value);  //used attr instead of data, for WC 4.0 compatibility
-		});
-		' );
+	/**
+	 * Returns the parsed shortcode.
+	 *
+	 * @param array   {
+	 *     Attributes of the shortcode.
+	 *
+	 *     @type string $id ID of...
+	 * }
+	 * @param string  Shortcode content.
+	 *
+	 * @return string HTML content to display the shortcode.
+	 */
+	function qb_table_view( $atts = array(), $content = '' ) {
+		$atts = shortcode_atts( array(
+			'products' => '',
+		), $atts, 'qv-table-view' );
 
-		wc_enqueue_js( '
-		$(document.body).on("adding_to_cart", function() {
-			$("a.added_to_cart").remove();
-		});
-		});
-		' );
+		$products_id = explode(',', $atts['products']);
+
+		$args = array(
+		    'include' => $products_id,
+		);
+		$products = wc_get_products( $args );
+	
+		ob_start();
+		?>
+		<table>
+			<thead>
+				<tr>
+					<th><?php _e('Image','quick-buy') ?></th>
+					<th><?php _e('Name','quick-buy') ?></th>
+					<th><?php _e('Variations','quick-buy') ?></th>
+					<th><?php _e('Quantity','quick-buy') ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ($products as $key => $product): ?>
+					<tr>
+						<td><?php echo wp_get_attachment_image( $product->image_id ); ?></td>
+						<td><?php echo $product->name; ?></td>
+						<td>
+						<?php if ( $product->is_type( 'variable' ) ): 
+							$attribute_keys = array_keys( $product->get_attributes() ); ?>
+							<form class="qb-variation-id" action="">								
+								<?php foreach ( $product->get_variation_attributes() as $attribute_name => $options ) : ?>
+									<label for="<?php echo sanitize_title( $attribute_name ); ?>"><?php echo wc_attribute_label( $attribute_name ); ?></label>
+									<?php
+									$selected = isset( $_REQUEST[ 'attribute_' . sanitize_title( $attribute_name ) ] ) ? wc_clean( urldecode( $_REQUEST[ 'attribute_' . sanitize_title( $attribute_name ) ] ) ) : $product->get_variation_default_attribute( $attribute_name );
+									wc_dropdown_variation_attribute_options( array( 'options' => $options, 'attribute' => $attribute_name, 'product' => $product, 'selected' => $selected ) );
+									echo end( $attribute_keys ) === $attribute_name ? apply_filters( 'woocommerce_reset_variations_link', '<a class="reset_variations" href="#">' . __( 'Clear', 'woocommerce' ) . '</a>' ) : '';
+									?>
+								<?php endforeach ?>
+								<input type="hidden" name="product_id" value="<?php echo $product->id; ?>">
+							</form>
+						<?php endif ?>
+						</td>							
+						<td>
+							<form id="qb-add-<?php echo $product->id; ?>" class="qb-add-to-cart" action="">
+								<?php echo woocommerce_quantity_input( array(), $product, false ); ?>
+								<button class="single_add_to_cart_button button alt"><?php _e('Add to cart','quick-buy') ?></button>
+								<input type="hidden" name="add-to-cart" value="<?php echo $product->id; ?>">
+							</form>							
+						</td>
+					</tr>					
+				<?php endforeach ?>
+			</tbody>
+		</table>
+		<?php
+		return ob_get_clean();
 	}
 
 }
