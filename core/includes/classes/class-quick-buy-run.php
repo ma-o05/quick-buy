@@ -43,7 +43,7 @@ class Quick_Buy_Run{
 	private function add_hooks(){
 	
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_backend_scripts_and_styles' ), 20 );
-		add_action( 'enqueue_scripts', array( $this, 'enqueue_frontend_scripts_and_styles' ), 20 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts_and_styles' ), 20 );
 
 		add_shortcode( 'qv-table-view', array( $this, 'qb_table_view' ) );	
 		add_action('wp_ajax_nopriv_qb_get_variation_id',  array( $this, 'qb_get_variation_id') );
