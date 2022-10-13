@@ -81,7 +81,7 @@ class Quick_Buy_Run{
 
 	public function enqueue_frontend_scripts_and_styles()
 	{
-			wp_enqueue_script( 'quickbuy-frontend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array(), QUICKBUY_VERSION, false );
+			wp_enqueue_script( 'quickbuy-frontend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array('jQuery'), QUICKBUY_VERSION, true );
 			wp_localize_script( 'quickbuy-frontend-scripts', 'quickbuy', array(
 				'plugin_name'   	=> __( QUICKBUY_NAME, 'quick-buy' ),
 			));
