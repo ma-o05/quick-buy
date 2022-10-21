@@ -181,7 +181,7 @@ class Quick_Buy_Run{
 						<td>
 							<form id="qb-add-<?php echo $product->id; ?>" class="qb-add-to-cart" action="">
 								<?php echo woocommerce_quantity_input( array(), $product, false ); ?>
-								<button class="single_add_to_cart_button button alt"><?php _e('Add to cart','quick-buy') ?></button>
+								<button class="single_add_to_cart_button button alt" <?php echo $product->is_type( 'variable' ) ? 'disabled="disabled"' : ''; ?>><?php _e('Add to cart','quick-buy'); ?></button>
 								<input type="hidden" name="add-to-cart" value="<?php echo $product->id; ?>">
 								<?php if ( $product->is_type( 'variable' ) ):
 									echo '<input type="hidden" name="variation-id" value="">';
