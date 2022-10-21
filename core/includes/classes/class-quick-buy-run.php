@@ -70,8 +70,8 @@ class Quick_Buy_Run{
 	 * @return	void
 	 */
 	public function enqueue_backend_scripts_and_styles() {
-		wp_enqueue_style( 'quickbuy-backend-styles', QUICKBUY_PLUGIN_URL . 'core/includes/assets/css/backend-styles.css', array(), QUICKBUY_VERSION, 'all' );
 		/*
+		wp_enqueue_style( 'quickbuy-backend-styles', QUICKBUY_PLUGIN_URL . 'core/includes/assets/css/backend-styles.css', array(), QUICKBUY_VERSION, 'all' );
 		wp_enqueue_script( 'quickbuy-backend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/backend-scripts.js', array(), QUICKBUY_VERSION, false );
 		wp_localize_script( 'quickbuy-backend-scripts', 'quickbuy', array(
 			'plugin_name'   	=> __( QUICKBUY_NAME, 'quick-buy' ),
@@ -81,13 +81,10 @@ class Quick_Buy_Run{
 
 	public function enqueue_frontend_scripts_and_styles()
 	{
-			wp_enqueue_script( 'quickbuy-frontend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array('jQuery'), QUICKBUY_VERSION, true );
-			wp_localize_script( 'quickbuy-frontend-scripts', 'quickbuy', array(
-				'plugin_name'   	=> __( QUICKBUY_NAME, 'quick-buy' ),
-			));
-			wp_localize_script( 'quickbuy-frontend-scripts', 'ajax_var', array(
-		        'url'    => admin_url( 'admin-ajax.php' )
-		    ) );
+		wp_enqueue_style( 'quickbuy-frontend-styles', QUICKBUY_PLUGIN_URL . 'core/includes/assets/css/frontend-styles.css', array(), QUICKBUY_VERSION, 'all' );
+		wp_enqueue_script( 'quickbuy-frontend-scripts', QUICKBUY_PLUGIN_URL . 'core/includes/assets/js/frontend-scripts.js', array( 'jquery' ), QUICKBUY_VERSION, true );
+		wp_localize_script( 'quickbuy-frontend-scripts', 'quickbuy', array( 'plugin_name' => __( QUICKBUY_NAME, 'quick-buy' ) ));
+		wp_localize_script( 'quickbuy-frontend-scripts', 'ajax_var', array( 'url'    => admin_url( 'admin-ajax.php' ) ) );
 	}
 
 	function find_matching_product_variation_id($product_id, $attributes)
@@ -118,7 +115,9 @@ class Quick_Buy_Run{
 	public function qb_custom_add_to_cart()
 	{
 		$product_data  = isset( $_POST['product_data'] ) ? $_POST['product_data'] : false;
-		WC()->cart->add_to_cart( $product_data[1]['value'], $product_data[0]['value'] );
+		$cart_item_key = WC()->cart->add_to_cart( $product_data[1]['value'], $product_data[0]['value'], $product_data[2]['value'] );
+		$items_count = WC()->cart->get_cart_contents_count();
+		echo $items_count;
 		die();
 	}
 
@@ -145,6 +144,7 @@ class Quick_Buy_Run{
 		    'include' => $products_id,
 		);
 		$products = wc_get_products( $args );
+		$items_count = WC()->cart->get_cart_contents_count();
 	
 		ob_start();
 		?>
@@ -183,12 +183,16 @@ class Quick_Buy_Run{
 								<?php echo woocommerce_quantity_input( array(), $product, false ); ?>
 								<button class="single_add_to_cart_button button alt"><?php _e('Add to cart','quick-buy') ?></button>
 								<input type="hidden" name="add-to-cart" value="<?php echo $product->id; ?>">
+								<?php if ( $product->is_type( 'variable' ) ):
+									echo '<input type="hidden" name="variation-id" value="">';
+								endif; ?>
 							</form>							
 						</td>
 					</tr>					
 				<?php endforeach ?>
 			</tbody>
 		</table>
+		<a href="<?php echo wc_get_cart_url(); ?>" class="qb-float-cart button"><span class="qb-float-cart-items-count"><?php echo $items_count; ?></span><span class="dashicons dashicons-cart"></span></a>
 		<?php
 		return ob_get_clean();
 	}

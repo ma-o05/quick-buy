@@ -19,7 +19,7 @@ Backend related javascript
 			console.log(response);
 		})
 		.success(function(response) {
-			$('#qb-add-'+qb_variations[last].value+' input[name=add-to-cart]').val(response);
+			$('#qb-add-'+qb_variations[last].value+' input[name=variation-id]').val(response);
 			if (response == 0) {
 				$('#qb-add-'+qb_variations[last].value+' .single_add_to_cart_button').attr('disabled','disabled');
 			}else{
@@ -39,12 +39,16 @@ Backend related javascript
 				action: 'qb_custom_add_to_cart',
 				product_data: product_data
 			},
+			beforeSend: function(response) {
+				$('#'+parent+' .single_add_to_cart_button').addClass('clicked');
+			}
 		})
 		.error(function(response) {
 			console.log(response);
 		})
 		.success(function(response) {
-			console.log(response);
+			$('.qb-float-cart .qb-float-cart-items-count').text(response);
+			$('#'+parent+' .single_add_to_cart_button').removeClass('clicked');
 		})
 	});
 })( jQuery );

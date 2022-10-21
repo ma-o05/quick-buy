@@ -1,0 +1,45 @@
+a.qb-float-cart.button {
+  position: fixed;
+  display: inline-block;
+  width: auto !important;
+  padding: 1rem;
+  background-color: var(--buttonInitialColor);
+  color: var(--buttonTextInitialColor);
+  border: var(--button-border);
+  right: 1rem;
+  bottom: 1rem;
+  line-height: 1;
+  border-radius: 50%;
+}
+a.qb-float-cart.button .qb-float-cart-items-count {
+  background: #FFFFFF;
+  color: #000000;
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 20px;
+  height: 20px;
+  padding-top: 4px;
+  text-align: center;
+  border-radius: 50%;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@keyframes taadaa {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.qb-add-to-cart .single_add_to_cart_button.clicked {
+  animation: taadaa 1s infinite;
+}
+
+/*# sourceMappingURL=frontend-styles.css.map */
