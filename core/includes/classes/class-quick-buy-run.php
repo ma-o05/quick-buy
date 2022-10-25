@@ -144,7 +144,7 @@ class Quick_Buy_Run{
 		    'include' => $products_id,
 		);
 		$products = wc_get_products( $args );
-		$items_count = WC()->cart->get_cart_contents_count();
+		$items_count = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : '';
 	
 		ob_start();
 		?>
