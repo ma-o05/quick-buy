@@ -48,6 +48,7 @@ Backend related javascript
 		})
 		.success(function(response) {
 			$('.qb-float-cart .qb-float-cart-items-count').text(response);
+			$('.elementor-menu-cart--items-indicator-bubble .elementor-menu-cart__toggle .elementor-button-icon').attr('data-counter', response);
 			$('#'+parent+' .single_add_to_cart_button').removeClass('clicked');
 		})
 	});
