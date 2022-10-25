@@ -3,7 +3,7 @@ a.qb-float-cart.button {
   display: inline-block;
   width: auto !important;
   padding: 1rem;
-  right: 1rem;
+  left: 1rem;
   bottom: 1rem;
   line-height: 1;
   border-radius: 50%;
