@@ -8,7 +8,7 @@ Backend related javascript
 		var qb_variations = $('.qb-variation-id').serializeArray();
 		var last = qb_variations.length - 1;
 		$.ajax({
-			url: 'https://localhost/wordpress-plugins/wp-admin/admin-ajax.php',
+			url: ajax_var.url,
 			type: 'POST',
 			data: {
 				action: 'qb_get_variation_id',
@@ -33,7 +33,7 @@ Backend related javascript
 		var parent = $(this).parent().attr('id');	
 		var product_data = $('#'+parent).serializeArray();
 		$.ajax({
-			url: 'https://localhost/wordpress-plugins/wp-admin/admin-ajax.php',
+			url: ajax_var.url,
 			type: 'POST',
 			data: {
 				action: 'qb_custom_add_to_cart',
