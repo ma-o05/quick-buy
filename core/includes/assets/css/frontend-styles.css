@@ -38,6 +38,10 @@ a.qb-float-cart.button .qb-float-cart-items-count {
     opacity: 0;
   }
 }
+.qb-add-to-cart .single_add_to_cart_button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .qb-add-to-cart .single_add_to_cart_button.clicked {
   animation: taadaa 1s infinite;
 }

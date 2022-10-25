@@ -42,6 +42,10 @@ a.qb-float-cart.button{
 
 .qb-add-to-cart{
 	.single_add_to_cart_button{
+		&:disabled{
+			opacity: .5;
+			cursor: not-allowed;
+		}
 		&.clicked{
 			animation: taadaa 1s infinite;
 		}

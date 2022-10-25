@@ -171,9 +171,7 @@ class Quick_Buy_Run{
 									<?php
 									$selected = isset( $_REQUEST[ 'attribute_' . sanitize_title( $attribute_name ) ] ) ? wc_clean( urldecode( $_REQUEST[ 'attribute_' . sanitize_title( $attribute_name ) ] ) ) : $product->get_variation_default_attribute( $attribute_name );
 									wc_dropdown_variation_attribute_options( array( 'options' => $options, 'attribute' => $attribute_name, 'product' => $product, 'selected' => $selected ) );
-									echo end( $attribute_keys ) === $attribute_name ? apply_filters( 'woocommerce_reset_variations_link', '<a class="reset_variations" href="#">' . __( 'Clear', 'woocommerce' ) . '</a>' ) : '';
-									?>
-								<?php endforeach ?>
+								endforeach; ?>
 								<input type="hidden" name="product_id" value="<?php echo $product->id; ?>">
 							</form>
 						<?php endif ?>
@@ -181,11 +179,22 @@ class Quick_Buy_Run{
 						<td>
 							<form id="qb-add-<?php echo $product->id; ?>" class="qb-add-to-cart" action="">
 								<?php echo woocommerce_quantity_input( array(), $product, false ); ?>
-								<button class="single_add_to_cart_button button alt" <?php echo $product->is_type( 'variable' ) ? 'disabled="disabled"' : ''; ?>><?php _e('Add to cart','quick-buy'); ?></button>
 								<input type="hidden" name="add-to-cart" value="<?php echo $product->id; ?>">
 								<?php if ( $product->is_type( 'variable' ) ):
-									echo '<input type="hidden" name="variation-id" value="">';
+									$default_attributes = $product->get_default_attributes();
+									$prefixed_slugs = array_map( function( $pa_name ) {
+									    return 'attribute_'. $pa_name;
+									}, array_keys( $default_attributes ) );
+
+									$default_attributes = array_combine( $prefixed_slugs, $default_attributes );
+
+									$data_store   = WC_Data_Store::load( 'product' );
+									$variation_id = $data_store->find_matching_product_variation(
+									  new \WC_Product( $product->id ),$default_attributes
+									);
+									echo '<input type="hidden" name="variation-id" value="'.$variation_id.'">';
 								endif; ?>
+								<button class="single_add_to_cart_button button alt" <?php echo $product->is_type( 'variable' ) && $variation_id == '0' ? 'disabled="disabled"' : ''; ?>><?php _e('Add to cart','quick-buy'); ?></button>
 							</form>							
 						</td>
 					</tr>					
