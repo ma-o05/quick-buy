@@ -3,9 +3,6 @@ a.qb-float-cart.button {
   display: inline-block;
   width: auto !important;
   padding: 1rem;
-  background-color: var(--buttonInitialColor);
-  color: var(--buttonTextInitialColor);
-  border: var(--button-border);
   right: 1rem;
   bottom: 1rem;
   line-height: 1;
