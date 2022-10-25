@@ -115,7 +115,7 @@ class Quick_Buy_Run{
 	public function qb_custom_add_to_cart()
 	{
 		$product_data  = isset( $_POST['product_data'] ) ? $_POST['product_data'] : false;
-		$cart_item_key = WC()->cart->add_to_cart( $product_data[1]['value'], $product_data[0]['value'], $product_data[2]['value'] );
+		WC()->cart->add_to_cart( $product_data[1]['value'], $product_data[0]['value'], $product_data[2]['value'] );
 		$items_count = WC()->cart->get_cart_contents_count();
 		echo $items_count;
 		die();
